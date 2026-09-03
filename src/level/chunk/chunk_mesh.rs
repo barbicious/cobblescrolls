@@ -1,11 +1,11 @@
-use std::error::Error;
-use std::rc::Rc;
-use glow::HasContext;
 use crate::graphics::Bindable;
 use crate::graphics::buffer::vertex_buffer::VertexBuffer;
 use crate::graphics::vertex_array::VertexArray;
 use crate::level::chunk::Chunk;
-use crate::level::tile::{TileType, TOTAL_VERTICES, Face};
+use crate::level::tile::{Face, TOTAL_VERTICES, TileType};
+use glow::HasContext;
+use std::error::Error;
+use std::rc::Rc;
 
 pub(super) struct ChunkMesh {
     vertices: [f32; TOTAL_VERTICES * Chunk::WIDTH * Chunk::HEIGHT * Chunk::DEPTH],

@@ -1,6 +1,6 @@
+use crate::level::chunk::chunk_mesh::ChunkMesh;
 use std::error::Error;
 use std::rc::Rc;
-use crate::level::chunk::chunk_mesh::ChunkMesh;
 
 pub mod chunk_mesh;
 

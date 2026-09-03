@@ -1,0 +1,11 @@
+[package]
+name = "cobblescrolls"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+glow = "0.18.0"
+glfw = { version = "0.62.0", features = ["src-build"]}
+bytemuck = "1.25.2"
+nalgebra-glm = "0.21.0"
+image = "0.25.10"

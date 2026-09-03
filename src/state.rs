@@ -1,16 +1,13 @@
 use crate::graphics::Bindable;
-use crate::graphics::buffer::vertex_buffer::VertexBuffer;
 use crate::graphics::shader::Shader;
 use crate::graphics::texture_atlas::TextureAtlas;
-use crate::graphics::vertex_array::VertexArray;
 use crate::graphics::window::Window;
-use crate::level::tile::{Face, TileType};
+use crate::level::chunk::Chunk;
 use glow::HasContext;
 use nalgebra_glm::{Vec3, perspective};
 use std::error::Error;
 use std::rc::Rc;
 use std::time::Instant;
-use crate::level::chunk::Chunk;
 
 pub struct State {
     window: Window,
