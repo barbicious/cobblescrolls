@@ -8,6 +8,8 @@ use nalgebra_glm::{Vec3, perspective};
 use std::error::Error;
 use std::rc::Rc;
 use std::time::Instant;
+use crate::level::tile::TileType;
+use crate::math::ray::Ray;
 
 pub struct State {
     window: Window,
@@ -31,7 +33,7 @@ impl State {
     }
 
     pub fn run(&mut self) -> Result<(), Box<dyn Error>> {
-        let chunk = Chunk::new(&self.gl, 0, 0, 0)?;
+        let mut chunk = Chunk::new(&self.gl, 0, 0, 0)?;
 
         let shader = Shader::new(&self.gl, "res/shaders/cube.vert", "res/shaders/cube.frag")?;
         shader.bind();
@@ -47,8 +49,11 @@ impl State {
 
         let mut camera_pos: Vec3 = Vec3::new(0.0, 0.0, 0.0);
         let mut camera_front: Vec3 = Vec3::new(0.0, 0.0, -1.0);
+        let mut camera_rotation: Vec3 = Vec3::new(0.0, 0.0, 0.0);
         const CAMERA_UP: Vec3 = Vec3::new(0.0, 1.0, 0.0);
         const CAMERA_SPEED: f32 = 2.5;
+
+        let mut last_click = Instant::now();
 
         let mut last_tick = Instant::now();
 
@@ -85,11 +90,33 @@ impl State {
                 yaw += self.window.mouse().x_delta;
                 pitch = (self.window.mouse().y_delta + pitch).clamp(-89.0, 89.0);
 
+                camera_rotation.x += self.window.mouse().x_delta as f32;
+                camera_rotation.y += self.window.mouse().y_delta as f32;
+
                 camera_front = nalgebra_glm::normalize(&Vec3::new(
                     (yaw.to_radians().cos() * pitch.to_radians().cos()) as f32,
                     pitch.to_radians().sin() as f32,
                     (yaw.to_radians().sin() * pitch.to_radians().cos()) as f32,
                 ))
+            }
+
+            if self.window.is_mouse_down(glfw::MouseButtonLeft) && (Instant::now() - last_click).as_secs_f32() > 0.2 {
+                last_click = Instant::now();
+
+                let mut ray = Ray::new(camera_pos, camera_rotation);
+
+                while (ray.distance() < 6.0) {
+                    ray.step(0.05);
+
+                    let tile = chunk.tile_at(ray.end().x as usize, ray.end().y as usize, ray.end().z as usize);
+
+                    if matches!(tile, TileType::Air) {
+                        continue
+                    }
+
+                    chunk.set_tile(ray.end().x as usize, ray.end().y as usize, ray.end().z as usize, TileType::Air);
+                    break
+                }
             }
 
             shader.set_mat4(

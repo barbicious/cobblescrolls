@@ -9,9 +9,11 @@ macro_rules! uv {
     };
 }
 
+#[derive(Copy, Clone)]
 pub enum TileType {
     Air,
     Grass,
+    Stone,
 }
 
 impl TileType {
@@ -21,7 +23,8 @@ impl TileType {
     fn uv(&self) -> (f32, f32) {
         match self {
             TileType::Air => panic!("Attempted to get uv coords for air!"),
-            TileType::Grass => uv!(1.0, 0.0),
+            TileType::Grass => uv!(0.0, 0.0),
+            TileType::Stone => uv!(1.0, 0.0),
         }
     }
 
@@ -79,4 +82,8 @@ pub enum Face {
     Right,
     Top,
     Bottom,
+}
+
+impl Face {
+    pub const VERTICES: f32 = 30.0;
 }

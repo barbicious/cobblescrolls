@@ -12,29 +12,15 @@ pub(super) struct ChunkMesh {
     vao: VertexArray,
     vbo: VertexBuffer,
     faces: usize,
-    gl: Rc<glow::Context>
+    gl: Rc<glow::Context>,
+    x: i32, y: i32, z: i32,
 }
 
 impl ChunkMesh {
-    pub fn new(gl: &Rc<glow::Context>, x: i32, y: i32, z: i32) -> Result<Self, Box<dyn Error>> {
+    pub fn new(gl: &Rc<glow::Context>, tiles: [TileType; Chunk::WIDTH * Chunk::HEIGHT * Chunk::DEPTH], x: i32, y: i32, z: i32) -> Result<Self, Box<dyn Error>> {
         let gl = gl.clone();
 
-        let mut vertices = [0_f32; TOTAL_VERTICES * Chunk::WIDTH * Chunk::HEIGHT * Chunk::DEPTH];
-
-        let mut i = 0;
-        for z in 0..Chunk::DEPTH {
-            for y in 0..Chunk::HEIGHT {
-                for x in 0..Chunk::WIDTH {
-                    vertices[(0 + i * 180)..(30 + i * 180)].copy_from_slice(TileType::Grass.vertices(Face::Front, x as i32, y as i32, z as i32).as_slice());
-                    vertices[(30 + i * 180)..(60 + i * 180)].copy_from_slice(TileType::Grass.vertices(Face::Back, x as i32, y as i32, z as i32).as_slice());
-                    vertices[(60 + i * 180)..(90 + i * 180)].copy_from_slice(TileType::Grass.vertices(Face::Bottom, x as i32, y as i32, z as i32).as_slice());
-                    vertices[(90 + i * 180)..(120 + i * 180)].copy_from_slice(TileType::Grass.vertices(Face::Left, x as i32, y as i32, z as i32).as_slice());
-                    vertices[(120 + i * 180)..(150 + i * 180)].copy_from_slice(TileType::Grass.vertices(Face::Top, x as i32, y as i32, z as i32).as_slice());
-                    vertices[(150 + i * 180)..(180 + i * 180)].copy_from_slice(TileType::Grass.vertices(Face::Right, x as i32, y as i32, z as i32).as_slice());
-                    i += 1;
-                }
-            }
-        }
+        let vertices = [0_f32; TOTAL_VERTICES * Chunk::WIDTH * Chunk::HEIGHT * Chunk::DEPTH];
 
         let vao = VertexArray::new(&gl)?;
         vao.bind();
@@ -56,9 +42,45 @@ impl ChunkMesh {
             vertices,
             vao,
             vbo,
-            faces: 6 * i,
-            gl
+            faces: 0,
+            gl,
+            x,
+            y,
+            z,
         })
+    }
+
+    pub fn add_face(&mut self, face: Face, tile_type: TileType, x: i32, y: i32, z: i32) {
+        self.vertices[(self.faces * Face::VERTICES as usize)..(30 + self.faces * Face::VERTICES as usize)].copy_from_slice(tile_type.vertices(face, x, y, z).as_slice());
+        self.faces += 1
+    }
+
+    pub fn regenerate_mesh(&mut self, tiles: &[TileType; Chunk::WIDTH * Chunk::HEIGHT * Chunk::DEPTH]) {
+        self.faces = 0;
+        self.vertices = [0_f32; TOTAL_VERTICES * Chunk::WIDTH * Chunk::HEIGHT * Chunk::DEPTH];
+
+        for z in 0..Chunk::DEPTH {
+            for y in 0..Chunk::HEIGHT {
+                for x in 0..Chunk::WIDTH {
+                    let tile_type = tiles[Chunk::idx(x, y, z)];
+
+                    if matches!(tile_type, TileType::Air) {
+                        continue
+                    }
+
+                    self.add_face(Face::Front, tile_type, x as i32, y as i32, z as i32);
+                    self.add_face(Face::Back, tile_type, x as i32, y as i32, z as i32);
+                    self.add_face(Face::Bottom, tile_type, x as i32, y as i32, z as i32);
+                    self.add_face(Face::Left, tile_type, x as i32, y as i32, z as i32);
+                    self.add_face(Face::Right, tile_type, x as i32, y as i32, z as i32);
+                    self.add_face(Face::Top, tile_type, x as i32, y as i32, z as i32);
+                }
+            }
+        }
+
+        self.vao.bind();
+        self.vbo.bind();
+        self.vbo.submit_data::<f32>(self.vertices.as_slice());
     }
 
     pub fn blit(&self) {

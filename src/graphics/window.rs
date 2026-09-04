@@ -1,6 +1,6 @@
-use glfw::{Context, Glfw, GlfwReceiver, Key, PWindow, fail_on_errors};
+use glfw::{fail_on_errors, Context, Glfw, GlfwReceiver, Key, MouseButton, PWindow};
 use glow::HasContext;
-use std::cell::{Ref, RefCell};
+use std::cell::{Ref, RefCell, RefMut};
 use std::collections::HashSet;
 use std::error::Error;
 use std::rc::Rc;
@@ -11,6 +11,8 @@ pub struct Mouse {
     pub x_delta: f64,
     pub y_delta: f64,
     first: bool,
+    previous_buttons: HashSet<MouseButton>,
+    current_buttons: HashSet<MouseButton>
 }
 
 impl Mouse {
@@ -63,8 +65,10 @@ impl Window {
             x: 0.0,
             y: 0.0,
             first: true,
+            previous_buttons: HashSet::with_capacity(MouseButton::Button8 as usize),
             x_delta: 0.0,
             y_delta: 0.0,
+            current_buttons: HashSet::with_capacity(MouseButton::Button8 as usize),
         }));
 
         let cursor_pos_callback_mouse = mouse.clone();
@@ -113,6 +117,10 @@ impl Window {
 
         self.keyboard.previous_keys = self.keyboard.current_keys.clone();
 
+        let mut mouse = self.mouse.borrow_mut();
+
+        mouse.previous_buttons = mouse.current_buttons.clone();
+
         for (_, event) in glfw::flush_messages(&self.event) {
             match event {
                 glfw::WindowEvent::Key(key, _, glfw::Action::Press, _) => {
@@ -120,6 +128,12 @@ impl Window {
                 }
                 glfw::WindowEvent::Key(key, _, glfw::Action::Release, _) => {
                     self.keyboard.current_keys.remove(&key);
+                }
+                glfw::WindowEvent::MouseButton(button, glfw::Action::Press, _) => {
+                    mouse.current_buttons.insert(button);
+                }
+                glfw::WindowEvent::MouseButton(button, glfw::Action::Release, _) => {
+                    mouse.current_buttons.remove(&button);
                 }
                 _ => {}
             }
@@ -130,6 +144,10 @@ impl Window {
 
     pub fn is_key_down(&self, key: Key) -> bool {
         self.keyboard.previous_keys.contains(&key) && self.keyboard.current_keys.contains(&key)
+    }
+
+    pub fn is_mouse_down(&self, mouse_button: MouseButton) -> bool {
+        self.mouse().current_buttons.contains(&mouse_button) && self.mouse().previous_buttons.contains(&mouse_button)
     }
 
     pub fn display(&mut self) {
