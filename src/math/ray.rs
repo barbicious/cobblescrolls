@@ -11,7 +11,7 @@ impl Ray {
         Self {
             start: position,
             end: position,
-            direction
+            direction,
         }
     }
 

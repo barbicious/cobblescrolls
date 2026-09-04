@@ -3,13 +3,13 @@ use crate::graphics::shader::Shader;
 use crate::graphics::texture_atlas::TextureAtlas;
 use crate::graphics::window::Window;
 use crate::level::chunk::Chunk;
+use crate::level::tile::TileType;
+use crate::math::ray::Ray;
 use glow::HasContext;
 use nalgebra_glm::{Vec3, perspective};
 use std::error::Error;
 use std::rc::Rc;
 use std::time::Instant;
-use crate::level::tile::TileType;
-use crate::math::ray::Ray;
 
 pub struct State {
     window: Window,
@@ -34,6 +34,7 @@ impl State {
 
     pub fn run(&mut self) -> Result<(), Box<dyn Error>> {
         let mut chunk = Chunk::new(&self.gl, 0, 0, 0)?;
+        chunk.regenerate_mesh();
 
         let shader = Shader::new(&self.gl, "res/shaders/cube.vert", "res/shaders/cube.frag")?;
         shader.bind();
@@ -100,22 +101,33 @@ impl State {
                 ))
             }
 
-            if self.window.is_mouse_down(glfw::MouseButtonLeft) && (Instant::now() - last_click).as_secs_f32() > 0.2 {
+            if self.window.is_mouse_down(glfw::MouseButtonLeft)
+                && (Instant::now() - last_click).as_secs_f32() > 0.5
+            {
                 last_click = Instant::now();
 
                 let mut ray = Ray::new(camera_pos, camera_rotation);
 
-                while (ray.distance() < 6.0) {
+                while ray.distance() < 6.0 {
                     ray.step(0.05);
 
-                    let tile = chunk.tile_at(ray.end().x as usize, ray.end().y as usize, ray.end().z as usize);
+                    let tile = chunk.tile_at(
+                        ray.end().x as usize,
+                        ray.end().y as usize,
+                        ray.end().z as usize,
+                    );
 
                     if matches!(tile, TileType::Air) {
-                        continue
+                        continue;
                     }
 
-                    chunk.set_tile(ray.end().x as usize, ray.end().y as usize, ray.end().z as usize, TileType::Air);
-                    break
+                    chunk.set_tile(
+                        ray.end().x as usize,
+                        ray.end().y as usize,
+                        ray.end().z as usize,
+                        TileType::Air,
+                    );
+                    break;
                 }
             }
 
@@ -126,7 +138,8 @@ impl State {
 
             unsafe {
                 self.gl.clear_color(0.3, 0.5, 0.8, 1.0);
-                self.gl.clear(glow::COLOR_BUFFER_BIT | glow::DEPTH_BUFFER_BIT);
+                self.gl
+                    .clear(glow::COLOR_BUFFER_BIT | glow::DEPTH_BUFFER_BIT);
 
                 chunk.blit();
             }

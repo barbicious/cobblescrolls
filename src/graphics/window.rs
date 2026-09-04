@@ -1,4 +1,4 @@
-use glfw::{fail_on_errors, Context, Glfw, GlfwReceiver, Key, MouseButton, PWindow};
+use glfw::{Context, Glfw, GlfwReceiver, Key, MouseButton, PWindow, fail_on_errors};
 use glow::HasContext;
 use std::cell::{Ref, RefCell, RefMut};
 use std::collections::HashSet;
@@ -12,7 +12,7 @@ pub struct Mouse {
     pub y_delta: f64,
     first: bool,
     previous_buttons: HashSet<MouseButton>,
-    current_buttons: HashSet<MouseButton>
+    current_buttons: HashSet<MouseButton>,
 }
 
 impl Mouse {
@@ -147,7 +147,8 @@ impl Window {
     }
 
     pub fn is_mouse_down(&self, mouse_button: MouseButton) -> bool {
-        self.mouse().current_buttons.contains(&mouse_button) && self.mouse().previous_buttons.contains(&mouse_button)
+        self.mouse().current_buttons.contains(&mouse_button)
+            && self.mouse().previous_buttons.contains(&mouse_button)
     }
 
     pub fn display(&mut self) {

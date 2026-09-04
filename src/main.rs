@@ -1,7 +1,7 @@
 mod graphics;
 pub mod level;
-pub mod state;
 pub mod math;
+pub mod state;
 
 use crate::state::State;
 use std::error::Error;
