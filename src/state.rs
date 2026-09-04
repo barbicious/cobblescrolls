@@ -2,6 +2,7 @@ use crate::graphics::Bindable;
 use crate::graphics::shader::Shader;
 use crate::graphics::texture_atlas::TextureAtlas;
 use crate::graphics::window::Window;
+use crate::level::Level;
 use crate::level::chunk::Chunk;
 use crate::level::tile::TileType;
 use crate::math::ray::Ray;
@@ -33,8 +34,7 @@ impl State {
     }
 
     pub fn run(&mut self) -> Result<(), Box<dyn Error>> {
-        let mut chunk = Chunk::new(&self.gl, 0, 0, 0)?;
-        chunk.regenerate_mesh();
+        let mut level = Level::new(&self.gl)?;
 
         let shader = Shader::new(&self.gl, "res/shaders/cube.vert", "res/shaders/cube.frag")?;
         shader.bind();
@@ -57,7 +57,7 @@ impl State {
         let mut last_click = Instant::now();
 
         let mut last_tick = Instant::now();
-
+        
         while self.window.good() {
             if self.window.is_key_down(glfw::Key::Escape) {
                 break;
@@ -101,35 +101,35 @@ impl State {
                 ))
             }
 
-            if self.window.is_mouse_down(glfw::MouseButtonLeft)
-                && (Instant::now() - last_click).as_secs_f32() > 0.5
-            {
-                last_click = Instant::now();
-
-                let mut ray = Ray::new(camera_pos, camera_rotation);
-
-                while ray.distance() < 6.0 {
-                    ray.step(0.05);
-
-                    let tile = chunk.tile_at(
-                        ray.end().x as usize,
-                        ray.end().y as usize,
-                        ray.end().z as usize,
-                    );
-
-                    if matches!(tile, TileType::Air) {
-                        continue;
-                    }
-
-                    chunk.set_tile(
-                        ray.end().x as usize,
-                        ray.end().y as usize,
-                        ray.end().z as usize,
-                        TileType::Air,
-                    );
-                    break;
-                }
-            }
+            // if self.window.is_mouse_down(glfw::MouseButtonLeft)
+            //     && (Instant::now() - last_click).as_secs_f32() > 0.5
+            // {
+            //     last_click = Instant::now();
+            //
+            //     let mut ray = Ray::new(camera_pos, camera_rotation);
+            //
+            //     while ray.distance() < 6.0 {
+            //         ray.step(0.05);
+            //
+            //         let tile = chunk.tile_at(
+            //             ray.end().x as usize,
+            //             ray.end().y as usize,
+            //             ray.end().z as usize,
+            //         );
+            //
+            //         if matches!(tile, TileType::Air) {
+            //             continue;
+            //         }
+            //
+            //         chunk.set_tile(
+            //             ray.end().x as usize,
+            //             ray.end().y as usize,
+            //             ray.end().z as usize,
+            //             TileType::Air,
+            //         );
+            //         break;
+            //     }
+            // }
 
             shader.set_mat4(
                 nalgebra_glm::look_at_rh(&camera_pos, &(camera_pos + camera_front), &CAMERA_UP),
@@ -140,9 +140,9 @@ impl State {
                 self.gl.clear_color(0.3, 0.5, 0.8, 1.0);
                 self.gl
                     .clear(glow::COLOR_BUFFER_BIT | glow::DEPTH_BUFFER_BIT);
-
-                chunk.blit();
             }
+
+            level.blit();
 
             self.window.display();
         }

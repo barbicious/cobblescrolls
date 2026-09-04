@@ -1,8 +1,8 @@
 use crate::level::chunk::chunk_mesh::ChunkMesh;
+use crate::level::chunk::tiles::Tiles;
 use crate::level::tile::TileType;
 use std::error::Error;
 use std::rc::Rc;
-use crate::level::chunk::tiles::Tiles;
 
 pub mod chunk_mesh;
 pub mod tiles;

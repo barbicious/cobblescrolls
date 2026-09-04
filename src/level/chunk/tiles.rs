@@ -1,6 +1,6 @@
-use std::ops::{Index, IndexMut};
 use crate::level::chunk::Chunk;
 use crate::level::tile::TileType;
+use std::ops::{Index, IndexMut};
 
 pub struct Tiles {
     tiles: [TileType; Chunk::WIDTH * Chunk::HEIGHT * Chunk::DEPTH],
@@ -22,25 +22,26 @@ impl Tiles {
             }
         }
 
-        Self {
-            tiles,
-        }
+        Self { tiles }
     }
 
     pub fn is_tile_transparent(&self, x: i32, y: i32, z: i32) -> bool {
         if x < 0 || x > (Chunk::WIDTH - 1) as i32 {
-            return true
+            return true;
         }
 
         if y < 0 || y > (Chunk::HEIGHT - 1) as i32 {
-            return true
+            return true;
         }
 
         if z < 0 || z > (Chunk::DEPTH - 1) as i32 {
-            return true
+            return true;
         }
 
-        matches!(self[Chunk::idx(x as usize, y as usize, z as usize)], TileType::Air)
+        matches!(
+            self[Chunk::idx(x as usize, y as usize, z as usize)],
+            TileType::Air
+        )
     }
 }
 

@@ -1,18 +1,15 @@
-use crate::graphics::Bindable;
-use crate::graphics::buffer::vertex_buffer::VertexBuffer;
-use crate::graphics::vertex_array::VertexArray;
+use crate::graphics::mesh::Mesh;
 use crate::level::chunk::Chunk;
+use crate::level::chunk::tiles::Tiles;
+use crate::level::tile;
 use crate::level::tile::{Face, TileType};
 use glow::HasContext;
 use std::error::Error;
 use std::rc::Rc;
-use crate::graphics::mesh::Mesh;
-use crate::level::chunk::tiles::Tiles;
-use crate::level::tile;
 
 const TOTAL_VERTICES: usize = tile::TOTAL_VERTICES * Chunk::WIDTH * Chunk::HEIGHT * Chunk::DEPTH;
 
-pub(super) struct ChunkMesh {
+pub struct ChunkMesh {
     mesh: Mesh<TOTAL_VERTICES>,
     faces: usize,
     x: i32,
@@ -21,14 +18,9 @@ pub(super) struct ChunkMesh {
 }
 
 impl ChunkMesh {
-    pub fn new(
-        gl: &Rc<glow::Context>,
-        x: i32,
-        y: i32,
-        z: i32,
-    ) -> Result<Self, Box<dyn Error>> {
+    pub fn new(gl: &Rc<glow::Context>, x: i32, y: i32, z: i32) -> Result<Self, Box<dyn Error>> {
         Ok(Self {
-            mesh : Mesh::new(gl)?,
+            mesh: Mesh::new(gl)?,
             faces: 0,
             x,
             y,
@@ -37,14 +29,21 @@ impl ChunkMesh {
     }
 
     pub fn add_face(&mut self, face: Face, tile_type: TileType, x: i32, y: i32, z: i32) {
-        self.mesh.upload((self.faces * Face::VERTICES as usize)..(30 + self.faces * Face::VERTICES as usize), tile_type.vertices(face, x, y, z).as_slice());
+        self.mesh.upload(
+            (self.faces * Face::VERTICES as usize)..(30 + self.faces * Face::VERTICES as usize),
+            tile_type
+                .vertices(
+                    face,
+                    x + self.x * Chunk::WIDTH as i32,
+                    y + self.y * Chunk::HEIGHT as i32,
+                    z + self.z * Chunk::DEPTH as i32,
+                )
+                .as_slice(),
+        );
         self.faces += 1
     }
 
-    pub fn regenerate_mesh(
-        &mut self,
-        tiles: &Tiles,
-    ) {
+    pub fn regenerate_mesh(&mut self, tiles: &Tiles) {
         self.faces = 0;
         self.mesh.clear();
 

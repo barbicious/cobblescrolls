@@ -1,6 +1,6 @@
 use glfw::{Context, Glfw, GlfwReceiver, Key, MouseButton, PWindow, fail_on_errors};
 use glow::HasContext;
-use std::cell::{Ref, RefCell, RefMut};
+use std::cell::{Ref, RefCell};
 use std::collections::HashSet;
 use std::error::Error;
 use std::rc::Rc;

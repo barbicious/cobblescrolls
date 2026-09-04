@@ -1,12 +1,9 @@
-use std::error::Error;
-use std::ops::RangeBounds;
-use std::rc::Rc;
-use glow::HasContext;
 use crate::graphics::Bindable;
 use crate::graphics::buffer::vertex_buffer::VertexBuffer;
 use crate::graphics::vertex_array::VertexArray;
-use crate::level::chunk::Chunk;
-use crate::level::tile::{Face, TOTAL_VERTICES};
+use glow::HasContext;
+use std::error::Error;
+use std::rc::Rc;
 
 pub struct Mesh<const N: usize> {
     vertices: [f32; N],
@@ -60,13 +57,14 @@ impl<const N: usize> Mesh<N> {
         R: std::slice::SliceIndex<[f32], Output = [f32]>,
     {
         self.vertices[range].copy_from_slice(data);
-
     }
 
     pub fn blit(&self, count: i32) {
+        self.vao.bind();
+        self.vbo.bind();
+
         unsafe {
-            self.gl
-                .draw_arrays(glow::TRIANGLES, 0, count);
+            self.gl.draw_arrays(glow::TRIANGLES, 0, count);
         }
     }
 }
