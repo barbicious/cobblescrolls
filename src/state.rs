@@ -48,7 +48,7 @@ impl State {
         let mut yaw = -90.0;
         let mut pitch = 0.0;
 
-        let mut camera_pos: Vec3 = Vec3::new(0.0, 0.0, 0.0);
+        let mut camera_pos: Vec3 = Vec3::new(0.0, 10.0, 0.0);
         let mut camera_front: Vec3 = Vec3::new(0.0, 0.0, -1.0);
         let mut camera_rotation: Vec3 = Vec3::new(0.0, 0.0, 0.0);
         const CAMERA_UP: Vec3 = Vec3::new(0.0, 1.0, 0.0);
@@ -57,7 +57,7 @@ impl State {
         let mut last_click = Instant::now();
 
         let mut last_tick = Instant::now();
-        
+
         while self.window.good() {
             if self.window.is_key_down(glfw::Key::Escape) {
                 break;
@@ -101,35 +101,32 @@ impl State {
                 ))
             }
 
-            // if self.window.is_mouse_down(glfw::MouseButtonLeft)
-            //     && (Instant::now() - last_click).as_secs_f32() > 0.5
-            // {
-            //     last_click = Instant::now();
-            //
-            //     let mut ray = Ray::new(camera_pos, camera_rotation);
-            //
-            //     while ray.distance() < 6.0 {
-            //         ray.step(0.05);
-            //
-            //         let tile = chunk.tile_at(
-            //             ray.end().x as usize,
-            //             ray.end().y as usize,
-            //             ray.end().z as usize,
-            //         );
-            //
-            //         if matches!(tile, TileType::Air) {
-            //             continue;
-            //         }
-            //
-            //         chunk.set_tile(
-            //             ray.end().x as usize,
-            //             ray.end().y as usize,
-            //             ray.end().z as usize,
-            //             TileType::Air,
-            //         );
-            //         break;
-            //     }
-            // }
+            if self.window.is_mouse_down(glfw::MouseButtonLeft)
+                && (Instant::now() - last_click).as_secs_f32() > 0.25
+            {
+                last_click = Instant::now();
+
+                let mut ray = Ray::new(camera_pos, camera_rotation);
+
+                while ray.distance() < 6.0 {
+                    ray.step(0.05);
+
+                    let tile =
+                        level.get_tile(ray.end().x.floor() as i32, ray.end().y.floor() as i32, ray.end().z.floor() as i32);
+
+                    if matches!(tile, TileType::Air) {
+                        continue;
+                    }
+
+                    level.set_tile(
+                        ray.end().x.floor() as i32,
+                        ray.end().y.floor() as i32,
+                        ray.end().z.floor() as i32,
+                        TileType::Air,
+                    );
+                    break;
+                }
+            }
 
             shader.set_mat4(
                 nalgebra_glm::look_at_rh(&camera_pos, &(camera_pos + camera_front), &CAMERA_UP),

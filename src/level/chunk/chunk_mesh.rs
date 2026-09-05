@@ -1,8 +1,8 @@
 use crate::graphics::mesh::Mesh;
 use crate::level::chunk::Chunk;
 use crate::level::chunk::tiles::Tiles;
-use crate::level::tile;
 use crate::level::tile::{Face, TileType};
+use crate::level::{NeighboringTiles, tile};
 use glow::HasContext;
 use std::error::Error;
 use std::rc::Rc;
@@ -43,7 +43,7 @@ impl ChunkMesh {
         self.faces += 1
     }
 
-    pub fn regenerate_mesh(&mut self, tiles: &Tiles) {
+    pub fn regenerate_mesh(&mut self, tiles: &Tiles, neighboring_tiles: &NeighboringTiles) {
         self.faces = 0;
         self.mesh.clear();
 
@@ -56,27 +56,57 @@ impl ChunkMesh {
                         continue;
                     }
 
-                    if tiles.is_tile_transparent(x as i32, y as i32, z as i32 + 1) {
+                    if tiles.is_tile_transparent(
+                        x as i32,
+                        y as i32,
+                        z as i32 + 1,
+                        neighboring_tiles,
+                    ) {
                         self.add_face(Face::Front, tile_type, x as i32, y as i32, z as i32);
                     }
 
-                    if tiles.is_tile_transparent(x as i32, y as i32, z as i32 - 1) {
+                    if tiles.is_tile_transparent(
+                        x as i32,
+                        y as i32,
+                        z as i32 - 1,
+                        neighboring_tiles,
+                    ) {
                         self.add_face(Face::Back, tile_type, x as i32, y as i32, z as i32);
                     }
 
-                    if tiles.is_tile_transparent(x as i32, y as i32 + 1, z as i32) {
+                    if tiles.is_tile_transparent(
+                        x as i32,
+                        y as i32 + 1,
+                        z as i32,
+                        neighboring_tiles,
+                    ) {
                         self.add_face(Face::Top, tile_type, x as i32, y as i32, z as i32);
                     }
 
-                    if tiles.is_tile_transparent(x as i32, y as i32 - 1, z as i32) {
+                    if tiles.is_tile_transparent(
+                        x as i32,
+                        y as i32 - 1,
+                        z as i32,
+                        neighboring_tiles,
+                    ) {
                         self.add_face(Face::Bottom, tile_type, x as i32, y as i32, z as i32);
                     }
 
-                    if tiles.is_tile_transparent(x as i32 + 1, y as i32, z as i32) {
+                    if tiles.is_tile_transparent(
+                        x as i32 + 1,
+                        y as i32,
+                        z as i32,
+                        neighboring_tiles,
+                    ) {
                         self.add_face(Face::Right, tile_type, x as i32, y as i32, z as i32);
                     }
 
-                    if tiles.is_tile_transparent(x as i32 - 1, y as i32, z as i32) {
+                    if tiles.is_tile_transparent(
+                        x as i32 - 1,
+                        y as i32,
+                        z as i32,
+                        neighboring_tiles,
+                    ) {
                         self.add_face(Face::Left, tile_type, x as i32, y as i32, z as i32);
                     }
                 }
