@@ -11,6 +11,7 @@ use nalgebra_glm::{Vec3, perspective};
 use std::error::Error;
 use std::rc::Rc;
 use std::time::Instant;
+use crate::world_to_chunk_pos;
 
 pub struct State {
     window: Window,
@@ -48,11 +49,12 @@ impl State {
         let mut yaw = -90.0;
         let mut pitch = 0.0;
 
-        let mut camera_pos: Vec3 = Vec3::new(0.0, 10.0, 0.0);
-        let mut camera_front: Vec3 = Vec3::new(0.0, 0.0, -1.0);
-        let mut camera_rotation: Vec3 = Vec3::new(0.0, 0.0, 0.0);
+        let mut camera_pos = Vec3::new(4.0, 10.0, 4.0);
+        let mut camera_front = Vec3::new(0.0, 0.0, -1.0);
+        let mut camera_rotation = Vec3::new(0.0, 0.0, 0.0);
+
         const CAMERA_UP: Vec3 = Vec3::new(0.0, 1.0, 0.0);
-        const CAMERA_SPEED: f32 = 2.5;
+        const CAMERA_SPEED: f32 = 5.0;
 
         let mut last_click = Instant::now();
 
@@ -63,9 +65,13 @@ impl State {
                 break;
             }
 
+            level.do_mesh_work();
+
             let now = Instant::now();
             let dt = (now - last_tick).as_secs_f32();
             last_tick = now;
+
+            world_to_chunk_pos!(old_chunk_x, old_chunk_y, old_chunk_z, camera_pos.x as i32, camera_pos.y as i32, camera_pos.z as i32);
 
             if self.window.is_key_down(glfw::Key::W) {
                 camera_pos += (CAMERA_SPEED * dt) * camera_front;
@@ -85,6 +91,12 @@ impl State {
                 camera_pos +=
                     nalgebra_glm::normalize(&nalgebra_glm::cross(&camera_front, &CAMERA_UP))
                         * (CAMERA_SPEED * dt);
+            }
+
+            world_to_chunk_pos!(new_chunk_x, new_chunk_y, new_chunk_z, camera_pos.x as i32, camera_pos.y as i32, camera_pos.z as i32);
+
+            if old_chunk_x != new_chunk_x || old_chunk_y != new_chunk_y || old_chunk_z != new_chunk_z {
+                level.cross_boundaries(new_chunk_x, new_chunk_y, new_chunk_z)?;
             }
 
             if self.window.mouse().x_delta != 0.0 || self.window.mouse().y_delta != 0.0 {
@@ -108,11 +120,14 @@ impl State {
 
                 let mut ray = Ray::new(camera_pos, camera_rotation);
 
-                while ray.distance() < 6.0 {
+                while ray.distance() < 5.0 {
                     ray.step(0.05);
 
-                    let tile =
-                        level.get_tile(ray.end().x.floor() as i32, ray.end().y.floor() as i32, ray.end().z.floor() as i32);
+                    let tile = level.get_tile(
+                        ray.end().x.floor() as i32,
+                        ray.end().y.floor() as i32,
+                        ray.end().z.floor() as i32,
+                    );
 
                     if matches!(tile, TileType::Air) {
                         continue;

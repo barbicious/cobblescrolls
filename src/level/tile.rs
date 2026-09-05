@@ -9,9 +9,10 @@ macro_rules! uv {
     };
 }
 
-#[derive(Copy, Clone)]
+#[repr(u8)]
+#[derive(Copy, Clone, num_enum::TryFromPrimitive)]
 pub enum TileType {
-    Air,
+    Air = 0,
     Grass,
     Stone,
 }

@@ -11,6 +11,7 @@ pub mod tiles;
 pub struct Chunk {
     chunk_mesh: ChunkMesh,
     tiles: Tiles,
+    dirty: bool,
     x: i32,
     y: i32,
     z: i32,
@@ -32,7 +33,16 @@ impl Chunk {
             x,
             y,
             z,
+            dirty: false,
         })
+    }
+
+    pub fn dirty(&self) -> bool {
+        self.dirty
+    }
+
+    pub fn set_dirty(&mut self, dirty: bool) {
+        self.dirty = dirty
     }
 
     pub fn tiles(&self) -> &Tiles {
@@ -49,7 +59,7 @@ impl Chunk {
     }
 
     pub fn tile_at(&self, x: usize, y: usize, z: usize) -> TileType {
-        self.tiles[Self::idx(x, y, z)]
+        TileType::try_from(self.tiles[Self::idx(x, y, z)]).unwrap()
     }
 
     pub fn set_tile(
@@ -60,7 +70,7 @@ impl Chunk {
         tile_type: TileType,
         neighboring_tiles: &NeighboringTiles,
     ) {
-        self.tiles[Self::idx(x, y, z)] = tile_type;
+        self.tiles[Self::idx(x, y, z)] = tile_type as u8;
 
         self.chunk_mesh
             .regenerate_mesh(&self.tiles, neighboring_tiles)

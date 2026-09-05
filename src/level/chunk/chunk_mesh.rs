@@ -50,7 +50,7 @@ impl ChunkMesh {
         for z in 0..Chunk::DEPTH {
             for y in 0..Chunk::HEIGHT {
                 for x in 0..Chunk::WIDTH {
-                    let tile_type = tiles[Chunk::idx(x, y, z)];
+                    let tile_type = TileType::try_from(tiles[Chunk::idx(x, y, z)]).unwrap();
 
                     if matches!(tile_type, TileType::Air) {
                         continue;

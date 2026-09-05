@@ -7,10 +7,7 @@ macro_rules! test_bounds {
     ($eval:expr, $tiles:expr, $x:expr, $y:expr, $z:expr) => {
         if $eval {
             return if let Some(tiles) = $tiles {
-                matches!(
-                    tiles[Chunk::idx($x as usize, $y as usize, $z as usize)],
-                    TileType::Air
-                )
+                tiles[Chunk::idx($x as usize, $y as usize, $z as usize)] == TileType::Air as u8
             } else {
                 true
             };
@@ -19,22 +16,22 @@ macro_rules! test_bounds {
 }
 
 pub struct Tiles {
-    tiles: [TileType; Chunk::WIDTH * Chunk::HEIGHT * Chunk::DEPTH],
+    tiles: [u8; Chunk::WIDTH * Chunk::HEIGHT * Chunk::DEPTH],
 }
 
 impl Tiles {
     pub fn new(cx: i32, cy: i32, cz: i32) -> Self {
-        let mut tiles = [TileType::Air; Chunk::WIDTH * Chunk::HEIGHT * Chunk::DEPTH];
+        let mut tiles = [TileType::Air as u8; Chunk::WIDTH * Chunk::HEIGHT * Chunk::DEPTH];
 
         for z in 0..Chunk::DEPTH {
             for y in 0..Chunk::HEIGHT {
                 for x in 0..Chunk::WIDTH {
                     tiles[Chunk::idx(x, y, z)] = if (y as i32 + cy * Chunk::HEIGHT as i32) < 6 {
-                        TileType::Stone
+                        TileType::Stone as u8
                     } else if (y as i32 + cy * Chunk::HEIGHT as i32) < 7 {
-                        TileType::Grass
+                        TileType::Grass as u8
                     } else {
-                        TileType::Air
+                        TileType::Air as u8
                     }
                 }
             }
@@ -77,15 +74,12 @@ impl Tiles {
             0
         );
 
-        matches!(
-            self[Chunk::idx(x as usize, y as usize, z as usize)],
-            TileType::Air
-        )
+        self[Chunk::idx(x as usize, y as usize, z as usize)] == TileType::Air as u8
     }
 }
 
 impl Index<usize> for Tiles {
-    type Output = TileType;
+    type Output = u8;
 
     fn index(&self, index: usize) -> &Self::Output {
         &self.tiles[index]

@@ -9,3 +9,4 @@ glfw = { version = "0.62.0", features = ["src-build"]}
 bytemuck = "1.25.2"
 nalgebra-glm = "0.21.0"
 image = "0.25.10"
+num_enum = "0.7.6"
